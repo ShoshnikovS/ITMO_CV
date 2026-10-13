@@ -1,0 +1,27 @@
+== Проверка корректности (число отличающихся пикселей от OpenCV) ==
+mona-lisa     k= 3 C=  2: naive=0, integral=0
+mona-lisa     k=11 C=  2: naive=0, integral=0
+mona-lisa     k=21 C=  5: naive=0, integral=0
+mona-lisa     k=11 C= -5: naive=0, integral=0
+simple_track  k= 3 C=  2: naive=0, integral=0
+simple_track  k=11 C=  2: naive=0, integral=0
+simple_track  k=21 C=  5: naive=0, integral=0
+simple_track  k=11 C= -5: naive=0, integral=0
+
+== Время от blockSize (кадр 160x90), мс ==
+k= 3: opencv=0.0421  naive=20.4  integral=10.4
+k= 5: opencv=0.0619  naive=31.2  integral=10.9
+k= 9: opencv=0.0409  naive=54.2  integral=10.8
+k=15: opencv=0.0382  naive=97.9  integral=10.3
+k=21: opencv=0.0358  naive=146.3  integral=11.5
+k=31: opencv=0.0736  naive=301.5  integral=11.5
+k=41: opencv=0.0494  naive=407.0  integral=10.6
+
+== Время от размера изображения (blockSize=11), мс ==
+80x45: opencv=0.0181  naive=18.1  integral=2.8  (naive/opencv=998x, integral/opencv=157x)
+160x90: opencv=0.0686  naive=72.3  integral=10.2  (naive/opencv=1053x, integral/opencv=148x)
+320x180: opencv=0.2064  naive=284.0  integral=42.1  (naive/opencv=1376x, integral/opencv=204x)
+640x360: opencv=0.4799  naive=1153.4  integral=175.8  (naive/opencv=2403x, integral/opencv=366x)
+
+== Видео simple_track (20 кадров 640x360, k=11) ==
+OpenCV: 0.677 мс/кадр (1477 FPS); Python integral: 203.4 мс/кадр (4.9 FPS); кадры идентичны во всех 20 случаях
