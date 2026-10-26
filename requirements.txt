@@ -1,3 +1,16 @@
 opencv-python
 numpy
 matplotlib
+pypdf
+torch
+torchvision
+diffusers==0.35.2
+transformers
+huggingface-hub<1.0
+lpips
+torchmetrics
+piq
+scikit-learn
+pandas
+pyarrow
+pillow

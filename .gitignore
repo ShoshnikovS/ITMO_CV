@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+LW3/data/
+LW3/results/*.pt
+LW3/results/*.npy
