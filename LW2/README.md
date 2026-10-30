@@ -85,7 +85,16 @@ python run_experiments.py                                      # все эксп
 
 Видно, что конфигурации с потоком (первая и третья строки каждого видео) почти непрерывны, а чистая детекция отдельными вспышками, в основном в начале, когда объект крупный.
 
-Выходные видео с рамками (основная конфигурация SIFT + поток): `results/mona-lisa_sift_flow.mp4`, `results/mona-lisa-blur_sift_flow.mp4`, `results/mona-lisa-blur-extra-credit_sift_flow.mp4`.
+Выходные видео с рамками (основная конфигурация SIFT + поток). Анимации ниже уменьшены; полные видео открываются по ссылкам.
+
+mona-lisa ([видео](results/mona-lisa_sift_flow.mp4)):
+![mona-lisa](results/mona-lisa_sift_flow.gif)
+
+mona-lisa-blur ([видео](results/mona-lisa-blur_sift_flow.mp4)):
+![blur](results/mona-lisa-blur_sift_flow.gif)
+
+mona-lisa-blur-extra-credit ([видео](results/mona-lisa-blur-extra-credit_sift_flow.mp4)):
+![extra](results/mona-lisa-blur-extra-credit_sift_flow.gif)
 
 Контрольные кадры (12 равномерно по видео):
 
@@ -114,7 +123,24 @@ mona-lisa-blur-extra-credit:
 
 3.5. Собственное видео
 
-Раздел будет дополнен после съёмки собственного видео с похожим объектом (см. команду запуска выше: `python run_tracking.py videos/my_video.mp4 results/my_video.mp4 --label "Название"`).
+Видео снято самостоятельно: плоский прямоугольный объект (блокнот с наклейками) на столе, 720x1280, 240 кадров, 30 fps. Первый кадр - крупный план объекта, далее камера отдаляется, наклоняется и возвращается. Запуск:
+`python run_tracking.py videos/21288817724001.mp4 results/my_video_sift_flow.mp4 --label "My object"`
+
+Результат: объект найден на 240 из 240 кадров (детекция SIFT - 124 кадра, перенос оптическим потоком - 116 кадров), среднее время обработки 172 мс на кадр (вертикальное видео высокого разрешения). Рамка следует за блокнотом при удалении, наклоне и возвращении ([видео](results/my_video_sift_flow.mp4), [таблица по кадрам](results/my_video_sift_flow.csv)).
+
+Первый кадр (эталон):
+
+![](results/my_video_first.png)
+
+Анимация результата:
+
+![](results/my_video_sift_flow.gif)
+
+Контрольные кадры (12 равномерно по видео):
+
+![](results/my_video_sheet.png)
+
+В эталонном кадре блокнот виден не целиком (нижняя часть обрезана краем кадра), поэтому рамка обводит ту часть объекта, которая видна на первом кадре.
 
 4. Выводы по работе
 
