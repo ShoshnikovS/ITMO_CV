@@ -6,7 +6,7 @@
 
 1. Теоретическая база
 
-Диффузионная модель (DDPM, Ho et al., 2020) учится обращать процесс зашумления: к изображению (или его латентному представлению) постепенно, за T шагов добавляется гауссов шум, пока не останется чистый шум. Нейросеть (обычно U-Net) обучается по зашумлённому x_t и номеру шага t предсказывать добавленный шум (или близкую величину, v-предсказание). Генерация: начинаем с шума и шаг за шагом убираем его. Сэмплер DDIM позволяет делать это за небольшое число шагов (у нас 15).
+Диффузионная модель (DDPM, Ho et al., 2020) учится обращать процесс зашумления: к изображению (или его латентному представлению) постепенно, за T шагов добавляется гауссов шум, пока не останется чистый шум. Нейросеть (обычно U-Net) обучается по зашумлённому x_t и номеру шага t предсказывать добавленный шум (или близкую величину, v-предсказание). Генерация: начинаем с шума и шаг за шагом убираем его. Обучение идёт на T = 1000 шагов шума, но при генерации можно использовать только часть шагов (прореженное расписание): мы используем 15 шагов из 1000 (сэмплер DDPMScheduler из diffusers, он же задан в модели).
 
 Latent diffusion (Rombach et al., 2022): диффузия идёт не в пикселях, а в латентном пространстве автоэнкодера (VAE), что делает вычисления существенно дешевле. VAE кодирует картинку в латентный тензор и декодирует обратно.
 
@@ -34,7 +34,7 @@ Inpainting с помощью диффузии без дообучения (ид�
 1. LR-изображение переводится в [-1,1]; из него строится bicubic-увеличение x4 (изображение без улучшения).
 2. Bicubic-изображение кодируется VAE в латенты z_known. Маска (в разрешении выходного изображения) приводится к сетке латентов.
 3. Подготовка условия: LR-вход зашумляется до noise_level = 20 (как в оригинальном пайплайне).
-4. Старт: случайный шум в латентах. Цикл по 15 шагам DDIM: U-Net предсказывает шум по [латенты, LR-условие], шаг сэмплера даёт латенты следующего шага.
+4. Старт: случайный шум в латентах. Цикл по 15 шагам сэмплера DDPM: U-Net предсказывает шум по [латенты, LR-условие], шаг сэмплера даёт латенты следующего шага.
 5. Изменение сэмплинга: после каждого шага латенты смешиваются по маске: latents = M * latents + (1 - M) * noisy(z_known, t_next), где noisy - z_known, зашумлённое до уровня следующего шага (на последнем шаге - z_known без шума). Область M = 1 генерируется моделью, область M = 0 остаётся «известной».
 6. Декодирование VAE и финальное смешивание в пикселях: out = M * SR + (1 - M) * bicubic, чтобы вне маски результат в точности совпадал с bicubic-увеличением (тем же, что получается при маске из нулей).
 7. Если маска целиком нулевая, диффузия не запускается (результат по построению равен bicubic).
@@ -138,12 +138,11 @@ PSNR по половинам для комбинированной маски, �
 5. Использованные источники
 
 1. Ho J., Jain A., Abbeel P. Denoising Diffusion Probabilistic Models. NeurIPS, 2020.
-2. Song J., Meng C., Ermon S. Denoising Diffusion Implicit Models. ICLR, 2021.
-3. Rombach R. et al. High-Resolution Image Synthesis with Latent Diffusion Models. CVPR, 2022.
-4. Lugmayr A. et al. RePaint: Inpainting using Denoising Diffusion Probabilistic Models. CVPR, 2022.
-5. Avrahami O., Lischinski D., Fried O. Blended Diffusion for Text-driven Editing of Natural Images. CVPR, 2022.
-6. Zhang R. et al. The Unreasonable Effectiveness of Deep Features as a Perceptual Metric (LPIPS). CVPR, 2018.
-7. Wang J., Chan K., Loy C. Exploring CLIP for Assessing the Look and Feel of Images (CLIP-IQA). AAAI, 2023.
-8. Yu F. et al. Scaling Up to Excellence: Practicing Model Scaling for Photo-Realistic Image Restoration In the Wild (SUPIR). CVPR, 2024.
-9. Agustsson E., Timofte R. NTIRE 2017 Challenge on Single Image Super-Resolution: Dataset and Study (DIV2K). CVPRW, 2017.
-10. Документация Hugging Face diffusers (StableDiffusionUpscalePipeline), модель stabilityai/stable-diffusion-x4-upscaler.
+2. Rombach R. et al. High-Resolution Image Synthesis with Latent Diffusion Models. CVPR, 2022.
+3. Lugmayr A. et al. RePaint: Inpainting using Denoising Diffusion Probabilistic Models. CVPR, 2022.
+4. Avrahami O., Lischinski D., Fried O. Blended Diffusion for Text-driven Editing of Natural Images. CVPR, 2022.
+5. Zhang R. et al. The Unreasonable Effectiveness of Deep Features as a Perceptual Metric (LPIPS). CVPR, 2018.
+6. Wang J., Chan K., Loy C. Exploring CLIP for Assessing the Look and Feel of Images (CLIP-IQA). AAAI, 2023.
+7. Yu F. et al. Scaling Up to Excellence: Practicing Model Scaling for Photo-Realistic Image Restoration In the Wild (SUPIR). CVPR, 2024.
+8. Agustsson E., Timofte R. NTIRE 2017 Challenge on Single Image Super-Resolution: Dataset and Study (DIV2K). CVPRW, 2017.
+9. Документация Hugging Face diffusers (StableDiffusionUpscalePipeline), модель stabilityai/stable-diffusion-x4-upscaler.
