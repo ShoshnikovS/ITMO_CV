@@ -1,4 +1,4 @@
-"""ЛР3.2. Эксперименты: 3 изображения DIV2K x 3 деградации x 3 маски (всё 1 / всё 0 / комбинированная).
+"""ЛР3.2. Эксперименты: 4 изображения DIV2K x 3 деградации x 3 маски (всё 1 / всё 0 / комбинированная).
 Считает PSNR, LPIPS, CLIP-IQA, сохраняет картинки в results_sr/. Запуск: python run_sr_experiments.py"""
 import csv
 import io
@@ -72,7 +72,7 @@ def to_t(a):  # uint8 HWC -> [-1,1] NCHW
 
 
 def main():
-    pipe = load_pipe()
+    pipe = None
     lp = lpips.LPIPS(net="alex", verbose=False)
     clip_iqa = CLIPImageQualityAssessment(model_name_or_path="clip_iqa", data_range=1.0)
     masks = make_masks()
@@ -90,6 +90,7 @@ def main():
                 if path.exists():
                     out = np.asarray(Image.open(path).convert("RGB"))
                 else:
+                    pipe = pipe or load_pipe()
                     out = np.asarray(sr_inpaint(pipe, lr_img, mask, steps=STEPS, seed=0))
                     Image.fromarray(out).save(path)
                 sec = time.time() - t

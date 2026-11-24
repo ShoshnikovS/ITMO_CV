@@ -68,7 +68,8 @@ def sr_inpaint(pipe, lr, mask, steps=20, noise_level=20, guidance=1.0, prompt=""
         latents = m_lat * latents + (1 - m_lat) * known_t
 
     sr = pipe.vae.decode(latents / pipe.vae.config.scaling_factor, return_dict=False)[0].clamp(-1, 1)
-    out = m_pix * sr + (1 - m_pix) * bicubic  # точное совпадение с bicubic вне маски
+    base = torch.from_numpy(np.asarray(bicubic_up(lr)).astype(np.float32) / 127.5 - 1).permute(2, 0, 1)[None]
+    out = m_pix * sr + (1 - m_pix) * base  # вне маски - ровно то же bicubic, что и при маске из нулей
     arr = ((out[0].permute(1, 2, 0).numpy() + 1) * 127.5).round().clip(0, 255).astype(np.uint8)
     return Image.fromarray(arr)
 
