@@ -39,6 +39,47 @@ Inpainting с помощью диффузии без дообучения (ид�
 6. Декодирование VAE и финальное смешивание в пикселях: out = M * SR + (1 - M) * bicubic, чтобы вне маски результат в точности совпадал с bicubic-увеличением (тем же, что получается при маске из нулей).
 7. Если маска целиком нулевая, диффузия не запускается (результат по построению равен bicubic).
 
+Ключевые фрагменты кода (`sr_inpaint.py`).
+
+Маска приводится к сетке латентов, маска из нулей обрабатывается отдельно:
+
+```python
+if mask.sum() == 0:  # результат равен bicubic, диффузию не запускаем
+    return bicubic_up(lr)
+m_pix = torch.from_numpy(mask.astype(np.float32))[None, None]
+m_lat = (F.interpolate(m_pix, size=(h, w), mode="area") > 0).float()
+```
+
+Известное изображение (bicubic) кодируется в латенты, шум для его зашумления фиксирован:
+
+```python
+z_known = pipe.vae.encode(bicubic).latent_dist.mean * pipe.vae.config.scaling_factor
+known_noise = torch.randn(z_known.shape, generator=gen)
+```
+
+Цикл сэмплинга с изменением: после обычного шага сэмплера область вне маски заменяется:
+
+```python
+for i, t in enumerate(timesteps):
+    inp = torch.cat([pipe.scheduler.scale_model_input(latents, t), cond], dim=1)
+    eps = pipe.unet(inp, t, encoder_hidden_states=prompt_embeds, class_labels=nl_in, return_dict=False)[0]
+    latents = pipe.scheduler.step(eps, t, latents, return_dict=False)[0]
+    if i + 1 < len(timesteps):
+        known_t = pipe.scheduler.add_noise(z_known, known_noise, timesteps[i + 1:i + 2])
+    else:
+        known_t = z_known
+    latents = m_lat * latents + (1 - m_lat) * known_t
+```
+
+Финальное смешивание в пикселях:
+
+```python
+sr = pipe.vae.decode(latents / pipe.vae.config.scaling_factor, return_dict=False)[0].clamp(-1, 1)
+out = m_pix * sr + (1 - m_pix) * base   # base - то же bicubic, что и при маске из нулей
+```
+
+Метрики считаются в `run_sr_experiments.py`: PSNR - функция `psnr` (10 log10(255^2 / MSE)), LPIPS - пакет `lpips` (сеть AlexNet), CLIP-IQA - `torchmetrics.multimodal.CLIPImageQualityAssessment`.
+
 Принятые упрощения (из-за CPU): guidance (CFG) отключён (guidance = 1) и пустой промпт; 15 шагов вместо стандартных 75; изображения маленькие: HR-кроп 256x256, LR-вход 64x64.
 
 Тестовые данные: 4 кропа 256x256 из DIV2K (train HR, изображения 0001-0004: морская звезда, всадник, пальма, дома у воды). Три деградации (LR 64x64):
